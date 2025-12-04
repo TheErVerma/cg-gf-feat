@@ -31,6 +31,7 @@ if(!class_exists('CgGfAjaxController')){
                     }
                 }
             }
+            // test response
             wp_send_json(['status' => 200, 'message' => 'Success', 'options' => $options]);
             exit();
         }
