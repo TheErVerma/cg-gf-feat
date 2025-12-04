@@ -76,7 +76,7 @@ class CggffInventory extends GFAddOn
             array($this, 'inventory_tab_content'),
             2
         );
-
+        // Remove Sub Page To Hide From Admin Menu
         remove_menu_page('gf_edit_forms', 'gf_form_inventory');
     }
 
