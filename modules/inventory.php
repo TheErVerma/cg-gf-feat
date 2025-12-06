@@ -44,7 +44,7 @@ class CggffInventory extends GFAddOn
         add_action('wp_footer', [$this, 'front_snippets']);
         add_filter('gform_toolbar_menu', [$this, 'inventory_tab'], 10, 2);
 
-        add_action('admin_menu', array($this, 'create_menu'));
+        // add_action('admin_menu', array($this, 'create_menu'));
         // add_action('gform_field_settings_tab_content', [$this, 'inventory_tab_content'], 10, 2);
     }
 
@@ -83,9 +83,9 @@ class CggffInventory extends GFAddOn
     public function inventory_tab_content()
     {
 
-        if ( GFCommon::maybe_display_wizard() ) {
-			return;
-		};
+        if (GFCommon::maybe_display_wizard()) {
+            return;
+        };
 ?>
 
         <div class="my-custom-tab-content">
@@ -129,6 +129,20 @@ class CggffInventory extends GFAddOn
                     isMatch = cggffi_compare(this_inventory, this_compare, this_value);
                 }
                 return isMatch;
+            });
+
+            jQuery('.submenu-arrow').each(function(ind, elm) {
+                const this_btn = jQuery(elm);
+                this_btn.on("click", () => {
+                    console.log("test");
+                    if (this_btn.hasClass("active")) {
+                        this_btn.removeClass("active");
+                        this_btn.next().removeClass("active");
+                    } else {
+                        this_btn.addClass("active");
+                        this_btn.next().addClass("active");
+                    }
+                });
             });
         </script>
         <?php
