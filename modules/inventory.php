@@ -68,7 +68,7 @@ class CggffInventory extends GFAddOn
     public function create_menu()
     {
         add_submenu_page(
-            'admin.php?page=gf_edit_forms',
+            'gf_edit_forms',
             __('Inventory - Gravity Forms', 'gravityforms'),
             __('Inventory', 'gravityforms'),
             'manage_options',
@@ -77,37 +77,87 @@ class CggffInventory extends GFAddOn
             2
         );
         // Remove Sub Page To Hide From Admin Menu
-        remove_menu_page('gf_edit_forms', 'gf_form_inventory');
+        remove_menu_page('gf_form_inventory');
     }
 
     public function inventory_tab_content()
     {
 
-        if ( GFCommon::maybe_display_wizard() ) {
-			return;
-		};
+        // if ( GFCommon::maybe_display_wizard() ) {
+        // 	return;
+        // };
 ?>
+        <div id="screen-meta" class="metabox-prefs">
 
-        <div class="my-custom-tab-content">
-            <h3>My Custom Settings</h3>
-
-            <ul>
-                <li class="mysetting_setting field_setting">
-                    <label for="mysetting_value">
-                        <?php esc_html_e('Custom Setting Value', 'your-textdomain'); ?>
-                    </label>
-
-                    <input
-                        id="mysetting_value"
-                        type="text"
-                        class="fieldwidth-3"
-                        onkeyup="SetFieldProperty('mysetting_value', this.value);" />
-
-                    <small>Enter something to save into field properties.</small>
-                </li>
-            </ul>
+            <div id="contextual-help-wrap" class="hidden no-sidebar" tabindex="-1" aria-label="Contextual Help Tab">
+                <div id="contextual-help-back"></div>
+                <div id="contextual-help-columns">
+                    <div class="contextual-help-tabs">
+                        <ul>
+                        </ul>
+                    </div>
+                    <div class="contextual-help-tabs-wrap">
+                    </div>
+                </div>
+            </div>
         </div>
+        <link rel="stylesheet" id="gform_admin-css" href="<?php echo home_url(); ?>/wp-content/plugins/gravityforms/assets/css/dist/admin.min.css?ver=2.9.23" media="all">
+        <link rel="stylesheet" id="gform_settings-css" href="<?php echo home_url(); ?>/wp-content/plugins/gravityforms/assets/css/dist/settings.min.css?ver=2.9.23" media="all">
+        <div class="wrap gforms_edit_form gforms_form_settings_wrap gf_browser_chrome">
+            <div class="wrap gf_browser_chrome">
+                <header class="gform-settings-header ">
+                    <div class="gform-settings__wrapper">
+                        <img src="<?php echo home_url(); ?>/wp-content/plugins/gravityforms/images/logos/gravity-logo-dark.svg" alt="Gravity Forms" width="220">
+                    </div>
+                </header>
+                <div id="gform-form-toolbar" class="gform-form-toolbar">
+                    <div class="gform-form-toolbar__container">
+                        <ul id="gform-form-toolbar__menu" class="gform-form-toolbar__menu">
+                            <li class="gf_form_toolbar_editor"><a class=" " onclick="" onkeypress="" aria-label="Editor" href="?page=gf_edit_forms&amp;id=1" target="">Edit</a></li>
+                            <li class="gf_form_toolbar_settings"><a class="has_submenu" onclick="" onkeypress="" href="?page=gf_edit_forms&amp;view=settings&amp;id=1" target="">Settings</a>
+                            </li>
+                            <li class="gf_form_toolbar_entries"><a class=" " onclick="" onkeypress="" href="?page=gf_entries&amp;id=1" target="">Entries</a></li><span class="gform-form-toolbar__divider"></span>
+                            <li class="gf_form_toolbar_editor"><a class=" gf_toolbar_active" onclick="" onkeypress="" aria-label="Inventory" href="?page=gf_form_inventory&amp;id=1" target="">Inventory</a></li>
+                        </ul>
+                        <div id="gf_toolbar_buttons_container" class="gform-form-toolbar__buttons gf_toolbar_buttons_container">
 
+                            <a href="<?php echo home_url(); ?>/?gf_page=preview&amp;id=1" class="preview-form gform-button gform-button--white gform-button--icon-leading" target="_blank" rel="noopener">
+                                <span class="screen-reader-text">Preview this form</span>
+                                <span class="screen-reader-text">(opens in a new tab)</span>
+                                <i class="gform-button__icon gform-common-icon gform-common-icon--eye" aria-hidden="true"></i>Preview
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="gf-admin-notices-wrapper">
+                    <h1 class="screen-reader-text">Form Settings ‹ Test Form ‹ Forms - Gravity Forms</h1>
+                </div>
+                <div class="gform-settings__wrapper">
+                    <div class="gform-settings__content" id="tab_settings">
+                        <div class="my-custom-tab-content">
+                            <h3>My Custom Settings</h3>
+
+                            <ul>
+                                <li class="mysetting_setting field_setting">
+                                    <label for="mysetting_value">
+                                        <?php esc_html_e('Custom Setting Value', 'your-textdomain'); ?>
+                                    </label>
+
+                                    <input
+                                        id="mysetting_value"
+                                        type="text"
+                                        class="fieldwidth-3"
+                                        onkeyup="SetFieldProperty('mysetting_value', this.value);" />
+
+                                    <small>Enter something to save into field properties.</small>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     <?php
     }
 
