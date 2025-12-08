@@ -82,13 +82,76 @@ class CggffInventory extends GFAddOn
 
     public function inventory_tab_content()
     {
+        $form_id = isset($_GET['id']) ? $_GET['id'] : false;
 
-        // if ( GFCommon::maybe_display_wizard() ) {
-        // 	return;
-        // };
+        if (!$form_id) {
+            return;
+        }
+
+        $form = GFAPI::get_form($form_id);
+
+        // Get all fields that are explicitly type 'product'
+        $product_fields = GFAPI::get_fields_by_type($form, 'product');
+
+        $pricing_fields = array();
+        foreach ($form['fields'] as $field) {
+            if (in_array($field->type, array('product'))) { //, 'option', 'quantity', 'shipping', 'total'))) {
+                $pricing_fields[] = $field;
+            }
+        }
+        $inventory_html = '';
+        if (!empty($pricing_fields)) {
+            foreach ($pricing_fields as $pricing_field) {
+                // echo "<pre>";
+                // print_r($pricing_field);
+                // echo "</pre>";
+
+                $choices = $pricing_field->choices;
+                $has_choices = !empty($choices);
+
+                if ($has_choices) {
+                    $choices_html = '';
+                    if (!empty($choices)) {
+                        foreach ($choices as $choice) {
+                            $choices_html .= <<<EOD
+                                <tr>
+                                    <td>{$choice['text']}</td>
+                                    <td>{$choice['inventory']}</td>
+                                </tr>
+                            EOD;
+                        }
+                    }
+                    $inventory_html .= <<<EOD
+                        <div class="cggffi_choice_inventory_table">
+                            <h3>{$pricing_field->label}</h3>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Choices</th>
+                                        <th>Inventory</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {$choices_html}
+                                </tbody>
+                            </table>
+                        </div>
+                    EOD;
+                } else {
+                    $inventory_html .= <<<EOD
+                        <div class="cggffi_inventory_single">
+                            <h3>{$pricing_field->label}</h3>
+                            <div class="cggffi_inventory_single_content">
+                                <h4>Inventory Available</h4>
+                                <span class="inventory_count">{$pricing_field->inventory}</span>
+                            </div>
+                        </div>
+                    EOD;
+                }
+            }
+        }
 ?>
         <div id="screen-meta" class="metabox-prefs">
-
             <div id="contextual-help-wrap" class="hidden no-sidebar" tabindex="-1" aria-label="Contextual Help Tab">
                 <div id="contextual-help-back"></div>
                 <div id="contextual-help-columns">
@@ -101,6 +164,7 @@ class CggffInventory extends GFAddOn
                 </div>
             </div>
         </div>
+
         <link rel="stylesheet" id="gform_admin-css" href="<?php echo home_url(); ?>/wp-content/plugins/gravityforms/assets/css/dist/admin.min.css?ver=2.9.23" media="all">
         <link rel="stylesheet" id="gform_settings-css" href="<?php echo home_url(); ?>/wp-content/plugins/gravityforms/assets/css/dist/settings.min.css?ver=2.9.23" media="all">
         <div class="wrap gforms_edit_form gforms_form_settings_wrap gf_browser_chrome">
@@ -130,30 +194,9 @@ class CggffInventory extends GFAddOn
                     </div>
                 </div>
 
-                <div id="gf-admin-notices-wrapper">
-                    <h1 class="screen-reader-text">Form Settings ‹ Test Form ‹ Forms - Gravity Forms</h1>
-                </div>
-                <div class="gform-settings__wrapper">
-                    <div class="gform-settings__content" id="tab_settings">
-                        <div class="my-custom-tab-content">
-                            <h3>My Custom Settings</h3>
-
-                            <ul>
-                                <li class="mysetting_setting field_setting">
-                                    <label for="mysetting_value">
-                                        <?php esc_html_e('Custom Setting Value', 'your-textdomain'); ?>
-                                    </label>
-
-                                    <input
-                                        id="mysetting_value"
-                                        type="text"
-                                        class="fieldwidth-3"
-                                        onkeyup="SetFieldProperty('mysetting_value', this.value);" />
-
-                                    <small>Enter something to save into field properties.</small>
-                                </li>
-                            </ul>
-                        </div>
+                <div class="gform-inventory_wrapper">
+                    <div class="cggffi-tab-content">
+                        <?php echo $inventory_html; ?>
                     </div>
                 </div>
             </div>
@@ -179,6 +222,20 @@ class CggffInventory extends GFAddOn
                     isMatch = cggffi_compare(this_inventory, this_compare, this_value);
                 }
                 return isMatch;
+            });
+
+            jQuery('.submenu-arrow').each(function(ind, elm) {
+                const this_btn = jQuery(elm);
+                this_btn.on("click", () => {
+                    console.log("test");
+                    if (this_btn.hasClass("active")) {
+                        this_btn.removeClass("active");
+                        this_btn.next().removeClass("active");
+                    } else {
+                        this_btn.addClass("active");
+                        this_btn.next().addClass("active");
+                    }
+                });
             });
         </script>
         <?php
@@ -311,6 +368,8 @@ class CggffInventory extends GFAddOn
         </style>
         <script>
             fieldSettings.product += ", .inventory_setting";
+            fieldSettings.option += ", .inventory_setting";
+
             jQuery(document).on("gform_load_field_settings", function(event, field) {
                 console.log(field.inputType);
                 if (field.inputType != "singleproduct" && field.inputType != "calculation") {
@@ -329,7 +388,7 @@ class CggffInventory extends GFAddOn
             });
 
             gform.addFilter('gform_append_field_choice_option', function(str, field, i) {
-                if (field.type != 'product' || !field.choices || !field.choices.length) {
+                if (field.type != 'product' || field.type != 'option' || !field.choices || !field.choices.length) {
                     return str;
                 }
                 var inputType = GetInputType(field);
