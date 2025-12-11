@@ -1,5 +1,7 @@
 <?php
 
+use MailPoetVendor\Doctrine\ORM\Query\Expr\Func;
+
 GFForms::include_addon_framework();
 
 class CggffInventory extends GFAddOn
@@ -46,6 +48,30 @@ class CggffInventory extends GFAddOn
 
         add_action('admin_menu', array($this, 'create_menu'));
         // add_action('gform_field_settings_tab_content', [$this, 'inventory_tab_content'], 10, 2);
+
+        add_filter('gform_field_content', [$this, 'front_inventory_meta'], 10, 5);
+    }
+
+    public function front_inventory_meta($content, $field, $value, $lead_id, $form_id)
+    {
+        if ($field->type === 'product') {
+            $inventory_exhausted_msg = $field->inventory_exhausted_msg;
+            $inventory_available_msg = $field->inventory_available_msg;
+            $inventory = $field->inventory;
+
+            if ($inventory >= 1) {
+                $inventory_available_msg = str_replace('{{items}}', $inventory, $inventory_available_msg);
+                $content .= <<<EOD
+                <div class="cggffi_text_data" style="margin-top:8px;color:#555;">{$inventory_available_msg}</div>
+            EOD;
+            } else {
+                $content .= <<<EOD
+                    <div class="cggffi_text_data" style="margin-top:8px;color:#555;">{$inventory_exhausted_msg}</div>
+                EOD;
+            }
+        }
+
+        return $content;
     }
 
     public function inventory_tab($menu_items, $form_id)
@@ -177,11 +203,11 @@ class CggffInventory extends GFAddOn
                 <div id="gform-form-toolbar" class="gform-form-toolbar">
                     <div class="gform-form-toolbar__container">
                         <ul id="gform-form-toolbar__menu" class="gform-form-toolbar__menu">
-                            <li class="gf_form_toolbar_editor"><a class=" " onclick="" onkeypress="" aria-label="Editor" href="?page=gf_edit_forms&amp;id=1" target="">Edit</a></li>
-                            <li class="gf_form_toolbar_settings"><a class="has_submenu" onclick="" onkeypress="" href="?page=gf_edit_forms&amp;view=settings&amp;id=1" target="">Settings</a>
+                            <li class="gf_form_toolbar_editor"><a class=" " onclick="" onkeypress="" aria-label="Editor" href="?page=gf_edit_forms&amp;id=<?php echo $form_id; ?>" target="">Edit</a></li>
+                            <li class="gf_form_toolbar_settings"><a class="has_submenu" onclick="" onkeypress="" href="?page=gf_edit_forms&amp;view=settings&amp;id=<?php echo $form_id; ?>" target="">Settings</a>
                             </li>
-                            <li class="gf_form_toolbar_entries"><a class=" " onclick="" onkeypress="" href="?page=gf_entries&amp;id=1" target="">Entries</a></li><span class="gform-form-toolbar__divider"></span>
-                            <li class="gf_form_toolbar_editor"><a class=" gf_toolbar_active" onclick="" onkeypress="" aria-label="Inventory" href="?page=gf_form_inventory&amp;id=1" target="">Inventory</a></li>
+                            <li class="gf_form_toolbar_entries"><a class=" " onclick="" onkeypress="" href="?page=gf_entries&amp;id=<?php echo $form_id; ?>" target="">Entries</a></li><span class="gform-form-toolbar__divider"></span>
+                            <li class="gf_form_toolbar_editor"><a class=" gf_toolbar_active" onclick="" onkeypress="" aria-label="Inventory" href="?page=gf_form_inventory&amp;id=<?php echo $form_id; ?>" target="">Inventory</a></li>
                         </ul>
                         <div id="gf_toolbar_buttons_container" class="gform-form-toolbar__buttons gf_toolbar_buttons_container">
 
@@ -295,25 +321,38 @@ class CggffInventory extends GFAddOn
         foreach ($form['fields'] as &$field) {
             if ($field->type === 'product') {
                 $qty = rgar($entry, $field->id . '.3');
+                if (!$qty) {
+                    $qty_fields = GFAPI::get_fields_by_type($form, ['quantity']);
+                    if (!empty($qty_fields)) {
+                        foreach ($qty_fields as $qtyfield) {
+                            $qty_field_id = $qtyfield->id;
+                            $qty_field_prod = $qtyfield->productField;
+                            if ($qty_field_prod == $field->id) {
+                                $qty = rgar($entry, $qty_field_id);
+                            }
+                        }
+                    }
+                };
                 if (!$qty) $qty = 1;
                 $field->inventory = max(floatval($field->inventory) - $qty, 0);
-            }
 
-            if (!empty($field->choices)) {
-                $selected = rgar($entry, $field->id);
-                $submitted_values = [];
-                if (is_array($selected)) {
-                    foreach ($selected as $val) {
-                        $main_val = explode('|', $val)[0];
+
+                if (!empty($field->choices)) {
+                    $selected = rgar($entry, $field->id);
+                    $submitted_values = [];
+                    if (is_array($selected)) {
+                        foreach ($selected as $val) {
+                            $main_val = explode('|', $val)[0];
+                            $submitted_values[] = $main_val;
+                        }
+                    } else {
+                        $main_val = explode('|', $selected)[0];
                         $submitted_values[] = $main_val;
                     }
-                } else {
-                    $main_val = explode('|', $selected)[0];
-                    $submitted_values[] = $main_val;
-                }
-                foreach ($field->choices as &$choice) {
-                    if (in_array($choice['value'], $submitted_values) && isset($choice['inventory'])) {
-                        $choice['inventory'] = max($choice['inventory'] - 1, 0);
+                    foreach ($field->choices as &$choice) {
+                        if (in_array($choice['value'], $submitted_values) && isset($choice['inventory'])) {
+                            $choice['inventory'] = max($choice['inventory'] - $qty, 0);
+                        }
                     }
                 }
             }
@@ -324,9 +363,22 @@ class CggffInventory extends GFAddOn
     public function add_choice_setting($position, $form_id)
     {
         if ($position == 20) { ?>
+            <li class="inventory_checkbox field_setting">
+                <input type="checkbox" id="field_inventory_checkbox" class="gform-input gform-input--checkbox" onchange="SetFieldProperty('enable_inventory', this.value);" />
+                <label for="field_inventory_checkbox" class="inline">Enable Inventory</label>
+            </li>
             <li class="inventory_setting field_setting">
                 <label for="field_inventory" class="section_label">Inventory Limit</label>
                 <input type="number" id="field_inventory" class="gform-input gform-input--text" onchange="SetFieldProperty('inventory', this.value);" />
+            </li>
+            <li class="inventory_exhausted_msg field_setting">
+                <label for="field_inventory_exhausted_msg" class="section_label">Inventory Exhausted Message</label>
+                <input type="text" id="field_inventory_exhausted_msg" class="gform-input gform-input--text" onchange="SetFieldProperty('inventory_exhausted_msg', this.value);" />
+            </li>
+            <li class="inventory_available_msg field_setting">
+                <label for="field_inventory_available_msg" class="section_label">Inventory Available Text</label>
+                <p style="font-size: 11px;font-style: italic;color: #999;">Use tag <code style="color: #111;">{{items}}</code> to get dynamic number of items.</p>
+                <input type="text" id="field_inventory_available_msg" class="gform-input gform-input--text" onchange="SetFieldProperty('inventory_available_msg', this.value);" />
             </li>
         <?php }
     }
@@ -367,6 +419,9 @@ class CggffInventory extends GFAddOn
             }
         </style>
         <script>
+            fieldSettings.product += ", .inventory_exhausted_msg";
+            fieldSettings.product += ", .inventory_available_msg";
+            fieldSettings.product += ", .inventory_checkbox";
             fieldSettings.product += ", .inventory_setting";
             fieldSettings.option += ", .inventory_setting";
 
@@ -378,6 +433,8 @@ class CggffInventory extends GFAddOn
                 }
                 jQuery('.inventory_setting').show();
                 jQuery("#field_inventory").val(field["inventory"]);
+                jQuery("#field_inventory_exhausted_msg").val(field["inventory_exhausted_msg"]);
+                jQuery("#field_inventory_available_msg").val(field["inventory_available_msg"]);
             });
 
             jQuery('.choices_setting').on('input propertychange', '.field-choice-inventory', function() {
@@ -388,9 +445,10 @@ class CggffInventory extends GFAddOn
             });
 
             gform.addFilter('gform_append_field_choice_option', function(str, field, i) {
-                if (field.type != 'product' || field.type != 'option' || !field.choices || !field.choices.length) {
+                if (field.type != 'product' && field.type != 'option' && (!field.choices || !field.choices.length)) {
                     return str;
                 }
+
                 var inputType = GetInputType(field);
                 var inventory = field.choices[i].inventory ? field.choices[i].inventory : '';
                 if (jQuery('#field_choices').prev().hasClass('gfield_choice_header_inventory') === false) {
@@ -521,3 +579,19 @@ class CggffInventory extends GFAddOn
         GFAPI::update_form($form);
     }
 }
+
+
+add_action('wp_footer', function () {
+    // $field = GFAPI::get_field(1, 15);
+    $form = GFAPI::get_form(1);
+    $fields = GFAPI::get_fields_by_type($form, ['quantity']);
+    if (!empty($fields)) {
+        foreach ($fields as $field) {
+            $qty_field = $field->productField;
+        }
+    }
+    // echo "<pre>";
+    // print_r($field);
+    // print_r($fields);
+    // echo "</pre>";
+});

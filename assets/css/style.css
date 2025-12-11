@@ -60,3 +60,119 @@
 .cggffi_choice_inventory_table table tbody tr:nth-child(odd) td {
     background: #f8f9ff;
 }
+
+
+
+
+
+/** Features Tabing Start **/
+body.forms_page_cg_gf_features {
+    background: #f6f9fc;
+    color: #242748;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body.forms_page_cg_gf_features #wpcontent {
+    padding-left: 0;
+}
+
+.gform-settings-header {
+    background-color: #fff;
+    block-size: 75px;
+    border-bottom: 1px solid #ecedf8;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .05);
+    display: flex;
+    inline-size: 100%;
+    margin-top: 1px;
+}
+
+.gform-settings-header .gform-settings__wrapper {
+    align-items: center;
+    block-size: 75px;
+    display: flex;
+    flex-flow: row wrap;
+    gap: 10px;
+    inline-size: 100%;
+    justify-content: space-between;
+    padding-block: 0;
+}
+
+.forms_page_cg_gf_features .gform-settings-header .gform-settings__wrapper {
+    margin: 0 2rem;
+    max-width: none;
+    padding: 0;
+}
+
+.cggff_settings_wrap .cggff_container {
+    margin: auto;
+    max-width: 1100px;
+}
+
+.cggff_settings_wrap .cggff_container .cggff_features_tabs ul {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.cggff_settings_wrap .cggff_container .cggff_features_tabs li {
+    padding: 8px;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    cursor: pointer;
+}
+
+.cggff_settings_wrap .cggff_container .cggff_features_tabs li span.cggff_count {
+    width: 24px;
+    height: 20px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.cggff_settings_wrap .cggff_container .cggff_features_tabs li[tab_id=inactive] span.cggff_count {
+    background: #d96767;
+    color: #fff;
+    border-color: transparent;
+}
+
+.cggff_settings_wrap .cggff_container .cggff_features_tabs li[tab_id=active] span.cggff_count {
+    background: #89d375;
+    color: #fff;
+    border-color: transparent;
+}
+
+.cggff_settings_wrap .cggff_container .cggff_features_tabs li[tab_id=all] span.cggff_count {
+    background: #89a9ff;
+    color: #fff;
+    border-color: transparent;
+}
+
+.cggff_settings_wrap .cggff_container .cggff_features_tabs li.active {
+    box-shadow: 0px 0px 1px 2px #becdf3;
+}
+
+
+.cggff_settings_wrap .cggff_container .cggff_features_grid .cggff_feature_card {
+    background: #fff;
+    border: 1px solid #ddd !important;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 6px 6px #00000012;
+}
+
+.cggff_settings_wrap .cggff_container .cggff_features_grid .cggff_feature_card .cggff_feature_card__head {
+    display: flex;
+    gap: 20px;
+}
+
+.cggff_settings_wrap .cggff_container .cggff_features_grid .cggff_feature_card .cggff_feature_card__head h4 {
+    margin: 0;
+    font-size: 20px;
+}
+
+/** Features Tabing End **/

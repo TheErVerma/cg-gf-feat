@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Queue\Events\JobQueued;
-
 GFForms::include_addon_framework();
 
 class CgGfFeat extends GFAddOn
@@ -703,30 +701,6 @@ class CgGfFeat extends GFAddOn
         }
 
         return $button;
-    }
-
-    public function plugin_page()
-    {
-        echo 'This page appears in the Forms menu';
-    }
-
-    public function plugin_settings_fields()
-    {
-        return array(
-            array(
-                'title'  => esc_html__('Simple Add-On Settings', 'simpleaddon'),
-                'fields' => array(
-                    array(
-                        'name'              => 'mytextbox',
-                        'tooltip'           => esc_html__('This is the tooltip', 'simpleaddon'),
-                        'label'             => esc_html__('This is the label', 'simpleaddon'),
-                        'type'              => 'text',
-                        'class'             => 'small',
-                        'feedback_callback' => array($this, 'is_valid_setting'),
-                    )
-                )
-            )
-        );
     }
 
     public function form_settings_fields($form)
