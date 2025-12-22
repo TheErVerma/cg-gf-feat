@@ -46,6 +46,7 @@ function gf_simple_addon()
 
 add_action('admin_enqueue_scripts', function () {
     wp_enqueue_style('cggffi-main', plugin_dir_url(__FILE__) . '/assets/css/style.css');
+    wp_enqueue_script('cggffi-main', plugin_dir_url(__FILE__) . '/assets/js/script.js');
 });
 
 add_action('admin_menu', 'cggffeat_settings', 11);
